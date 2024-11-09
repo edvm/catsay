@@ -1,3 +1,6 @@
+use std::io::{self, Read};
+
+use anyhow::{Context, Result};
 use clap::Parser;
 use colored::Colorize;
 
@@ -11,33 +14,41 @@ struct Options {
     /// Make the cat appear dead
     dead: bool,
 
+    #[clap(short = 's', long = "stdin")]
+    /// Read the message from standard input
+    stdin: bool,
+
     #[clap(short = 'f', long = "file")]
     /// Load a cat picture from the specified file
     catfile: Option<std::path::PathBuf>,
 }
 
-fn main() {
+fn main() -> Result<()> {
     let options = Options::parse();
-    let message = options.message;
+
+    let mut message = String::new();
+    if options.stdin {
+        io::stdin().read_to_string(&mut message)?;
+    } else {
+        message = options.message;
+    }
 
     if message.to_lowercase() == "woof" {
         eprintln!("Cats do not bark!");
         std::process::exit(1);
     }
 
+    let eye = if options.dead { "x" } else { "0" };
+
     match &options.catfile {
         Some(path) => {
-            let cat_template =
-                std::fs::read_to_string(path).expect(&format!("Could not read file {:?}", path));
-            let eye = if options.dead { "x" } else { "0" };
+            let cat_template = std::fs::read_to_string(path)
+                .with_context(|| format!("Could not read file {:?}", path))?;
             let cat_picture = cat_template.replace("{eye}", &eye);
             println!("{}", &message.bright_yellow().underline().on_purple());
             println!("{}", &cat_picture);
-            return;
         }
         None => {
-            let eye = if options.dead { "x" } else { "0" };
-
             println!("{}", message.bright_yellow().underline().on_purple());
             println!(" \\");
             println!("  \\");
@@ -50,4 +61,5 @@ fn main() {
             println!(" /__|___|___\\");
         }
     }
+    return Ok(());
 }
