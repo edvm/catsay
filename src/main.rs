@@ -1,3 +1,24 @@
+use clap::Parser;
+
+#[derive(Parser)]
+struct Options {
+    #[clap(default_value = "Meow!")]
+    /// What does the cat say?
+    message: String
+}
+
+
 fn main() {
-    println!("Hello, world!");
+    let options = Options::parse();
+    let message = options.message;
+    println!("{}", message);
+    println!(" \\");
+    println!("  \\");
+    println!("   \\");
+    println!("    /\\_/\\");
+    println!("   ( o.o )");
+    println!("    > ^ <");
+    println!("   /  -  \\");
+    println!("  /        \\/");
+    println!(" /__|___|___\\");
 }
